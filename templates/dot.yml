@@ -1,5 +1,16 @@
 ---
-- name: "{{PyId .Name}}.dot"
+- name: "{{PyId .Name}}.gv"
   body: |
     digraph {{ Id .Name }} {
+      {{ range $i, $state := .States -}}
+      {{ Id $state.Name }}[label="{{ or .Title .Name }}"{{ if or (not $i) (Last $i $.States) }} shape=doublecircle{{ end }}];
+      {{ end }}
+
+      {{ range $i, $state := .States }}
+        {{- range $j, $event := $state.Events }}
+          {{- if $event.Next -}}
+            {{ Id $state.Name }} -> {{ Id $event.Next }}[label="{{ $event.Name }}"];
+          {{- end }}
+        {{ end }}
+      {{ end -}}
     }

@@ -1,0 +1,14 @@
+---
+- name: "{{PyId .Name}}.csv"
+  body: |
+    # label: %title%
+    # style: label;whiteSpace=wrap;html=1;rounded=1;fillColor=%fill%;strokeColor=%stroke%;
+    # connect: {"from": "refs", "to": "id", "style": "curved=1;fontSize=11;"}
+    title,id,fill,stroke,refs
+    {{ range $i, $state := .States -}}
+      {{ Id $state.Name }},
+      {{- or .Title .Name }}
+      {{- if or (not $i) (Last $i $.States) }},#dae8fc,#6c8ebf
+        {{- else }},#fff,#000
+      {{- end }},"{{ range $j, $e := $state.Events}}{{ Id $e.Next }}{{ if (not (Last $j $state.Events)) }},{{ end }}{{ end }}"
+    {{ end }}
