@@ -1,0 +1,42 @@
+---
+- name: my machine
+  title: >
+    test state machine 1 long description
+    long long long
+  template: python
+  states: 
+    - name: WAIT INPUT     # initial state is first in list
+      events:
+        - name: got input
+          next: PROCESSING
+          actions:
+            - log connect
+        - name: $any       # catch-all event
+          next: CRASH
+    - name: PROCESSING
+      events:
+        - name: bad input
+          next: WAIT INPUT
+          actions:
+            - log error
+        - name: processing success
+          next: WAIT INPUT
+        - name: TTL expired
+          next: END
+        - name: processing failure
+          next: CRASH
+    - name: CRASH
+      events:
+        - name: $enter     # state entry event
+          next: END
+          actions:
+            - log state
+    - name: END            # last state stops the machine
+      events:
+        - name: $exit      # state exit event
+          actions:
+            - mail admin
+
+- name: another machine
+  title: test state machine 2 description
+  # ... more machines ...
