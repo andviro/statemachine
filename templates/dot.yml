@@ -1,0 +1,5 @@
+---
+- name: "{{PyId .Name}}.dot"
+  body: |
+    digraph {{ Id .Name }} {
+    }
