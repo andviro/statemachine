@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"os"
+	"reflect"
 	"regexp"
 	"strings"
 	"text/template"
@@ -38,6 +39,9 @@ var funcMap = template.FuncMap{
 	},
 	"PyId": func(s string) (res string) {
 		return strings.Join(parts(s), "_")
+	},
+	"Last": func(x int, a interface{}) bool {
+		return x == reflect.ValueOf(a).Len()-1
 	},
 }
 
