@@ -2,20 +2,25 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
-	"text/template"
+	tpl "text/template"
 )
 
 var idCleanupRe = regexp.MustCompile("[^a-zA-Z0-9]+")
 
 type Template struct {
+	Src   string `yaml:"-"`
 	Name  string `yaml:"name"`
 	Body  string `yaml:"body"`
-	cName *template.Template
-	cBody *template.Template
+	Path  string `yaml:"path"`
+	cName *tpl.Template
+	cBody *tpl.Template
+	cPath map[string]*tpl.Template
 }
 
 func parts(s string) (res []string) {
@@ -30,7 +35,7 @@ func parts(s string) (res []string) {
 	return
 }
 
-var funcMap = template.FuncMap{
+var funcMap = tpl.FuncMap{
 	"Id": func(s string) (res string) {
 		for _, part := range parts(s) {
 			res += strings.Title(part)
@@ -45,11 +50,27 @@ var funcMap = template.FuncMap{
 	},
 }
 
-func (t *Template) Compile() (err error) {
-	if t.cName, err = template.New("").Funcs(funcMap).Parse(t.Name); err != nil {
+func (t *Template) Compile(src string) (err error) {
+	if t.Body != "" && t.Path != "" {
+		panic("both template body and template path specified")
+	}
+	t.Src = src
+	if t.cName, err = tpl.New("").Funcs(funcMap).Parse(t.Name); err != nil {
 		return
 	}
-	t.cBody, err = template.New("").Funcs(funcMap).Parse(t.Body)
+	if t.Body != "" {
+		t.cBody, err = tpl.New("").Funcs(funcMap).Parse(t.Body)
+		return
+	}
+	path, err := filepath.Abs(src)
+	if err != nil {
+		return
+	}
+	base := filepath.Join(filepath.Dir(path), t.Src)
+	err = filepath.Walk(base, func(path string, info os.FileInfo, err error) error {
+		fmt.Println(path, info, err)
+		return err
+	})
 	return
 }
 

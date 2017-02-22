@@ -51,7 +51,7 @@ func main() {
 			log.Fatalf("template parse error: %+v", err)
 		}
 		for _, t := range templates {
-			if err := t.Compile(); err != nil {
+			if err := t.Compile(tplName); err != nil {
 				log.Printf("template compile error: %v", err)
 				continue
 			}
