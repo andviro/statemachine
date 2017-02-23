@@ -1,3 +1,4 @@
 ---
 - name: "{{PyId .Name}}"
-  path: project
+  path: project/
+  iter: true

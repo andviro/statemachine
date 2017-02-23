@@ -1,16 +1,20 @@
 ---
-- name: "{{PyId .Name}}.gv"
+- name: "{{ Source }}.gv"
   body: |
+    {{ range . }}
     digraph {{ Id .Name }} {
-      {{ range $i, $state := .States -}}
-      {{ Id $state.Name }}[label="{{ or .Title .Name }}"{{ if or (not $i) (Last $i $.States) }} shape=doublecircle{{ end }}];
+      {{ with $states := .States }}
+      {{ range $i, $state := $states -}}
+      {{ Id $state.Name }}[label="{{ or .Title .Name }}"{{ if or (not $i) (Last $i $states) }} shape=doublecircle{{ end }}];
       {{ end }}
 
-      {{ range $i, $state := .States }}
+      {{ range $i, $state := $states }}
         {{- range $j, $event := $state.Events }}
           {{- if $event.Next -}}
             {{ Id $state.Name }} -> {{ Id $event.Next }}[label="{{ $event.Name }}"];
           {{- end }}
         {{ end }}
       {{ end -}}
+      {{ end }}
     }
+    {{ end }}

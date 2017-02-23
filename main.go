@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-var templateOverride = flag.String("t", "", "Override template in YAML")
+var template = flag.String("t", "", "Override template in YAML")
 
 func init() {
 	flag.Parse()
@@ -20,7 +20,8 @@ func main() {
 	if len(os.Args) < 2 {
 		os.Exit(1)
 	}
-	data, err := ioutil.ReadFile(flag.Arg(0))
+	srcFile := flag.Arg(0)
+	data, err := ioutil.ReadFile(srcFile)
 	if err != nil {
 		log.Fatalf("load error: %+v", err)
 	}
@@ -35,30 +36,28 @@ func main() {
 		}
 	}
 
-	for _, m := range machines {
-		var tplName string
-		if *templateOverride != "" {
-			tplName = *templateOverride
-		} else {
-			tplName = m.Template
+	if *template == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	data, err = ioutil.ReadFile(*template)
+	if err != nil {
+		log.Fatalf("templates load error: %+v", err)
+	}
+	var templates []*Template
+	if err = yaml.Unmarshal(data, &templates); err != nil {
+		log.Fatalf("templates parse error: %+v", err)
+	}
+
+	for i, t := range templates {
+		if err := t.Compile(*template); err != nil {
+			log.Printf("template %d compile error: %v", i, err)
+			continue
 		}
-		data, err := ioutil.ReadFile(tplName)
-		if err != nil {
-			log.Fatalf("template load error: %+v", err)
-		}
-		var templates []*Template
-		if err = yaml.Unmarshal(data, &templates); err != nil {
-			log.Fatalf("template parse error: %+v", err)
-		}
-		for _, t := range templates {
-			if err := t.Compile(tplName); err != nil {
-				log.Printf("template compile error: %v", err)
-				continue
-			}
-			if err := t.Execute(m); err != nil {
-				log.Printf("template execute error: %v", err)
-				continue
-			}
+		if err := t.Execute(machines, srcFile); err != nil {
+			log.Printf("template %d execute error: %v", i, err)
+			continue
 		}
 	}
 }

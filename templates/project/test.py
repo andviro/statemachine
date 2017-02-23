@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, unicode_literals, print_functi
 def main():
     pass
 
+
 if __name__ == "__main__":
-    print("{{ .Name }}")
+    print("{{ Index }}: {{ .Name }}")
     main()

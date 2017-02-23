@@ -6,10 +6,9 @@ import (
 )
 
 type Machine struct {
-	Name     string  `yaml:"name"`
-	Title    string  `yaml:"title"`
-	Template string  `yaml:"template"`
-	States   []State `yaml:"states"`
+	Name   string  `yaml:"name"`
+	Title  string  `yaml:"title"`
+	States []State `yaml:"states"`
 }
 
 type State struct {
