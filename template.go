@@ -49,6 +49,10 @@ func (t *Template) Compile(src string) (err error) {
 		return errors.Wrapf(err, "%s:1", src)
 	}
 	t.isDir = info.IsDir()
+	if !t.isDir {
+		t.cPath[t.Path], err = newTpl(filepath.Base(startPath)).ParseFiles(startPath)
+		return
+	}
 	err = filepath.Walk(startPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return errors.Wrapf(err, "%s:1", path)

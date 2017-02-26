@@ -1,0 +1,4 @@
+---
+- name: "dest/{{pyId .Name}}.py"
+  path: project/test.py
+  iter: true

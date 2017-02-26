@@ -50,13 +50,13 @@ func main() {
 		log.Fatalf("templates parse error: %+v", err)
 	}
 
-	for i, t := range templates {
+	for _, t := range templates {
 		if err := t.Compile(*template); err != nil {
 			log.Printf("%v", err)
 			continue
 		}
 		if err := t.Execute(machines, srcFile); err != nil {
-			log.Printf("template %d execute error: %v", i, err)
+			log.Printf("%v", err)
 			continue
 		}
 	}
