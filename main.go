@@ -3,10 +3,9 @@ package main
 import (
 	"gopkg.in/yaml.v2"
 
-	//"encoding/json"
 	"flag"
 	"io/ioutil"
-	"log"
+	logging "log"
 	"os"
 )
 
@@ -17,6 +16,7 @@ func init() {
 }
 
 func main() {
+	log := logging.New(os.Stderr, "", 0)
 	if len(os.Args) < 2 {
 		os.Exit(1)
 	}
@@ -52,7 +52,7 @@ func main() {
 
 	for i, t := range templates {
 		if err := t.Compile(*template); err != nil {
-			log.Printf("template %d compile error: %v", i, err)
+			log.Printf("%v", err)
 			continue
 		}
 		if err := t.Execute(machines, srcFile); err != nil {

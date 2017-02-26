@@ -1,14 +1,15 @@
 ---
-- name: "{{PyId .Name}}.csv"
+- name: "{{pyId .Name}}.csv"
+  iter: true
   body: |
     # label: %title%
     # style: label;whiteSpace=wrap;html=1;rounded=1;fillColor=%fill%;strokeColor=%stroke%;
     # connect: {"from": "refs", "to": "id", "style": "curved=1;fontSize=11;"}
     title,id,fill,stroke,refs
     {{ range $i, $state := .States -}}
-      {{ Id $state.Name }},
+      {{ goId $state.Name }},
       {{- or .Title .Name }}
-      {{- if or (not $i) (Last $i $.States) }},#dae8fc,#6c8ebf
+      {{- if or (not $i) (last $i $.States) }},#dae8fc,#6c8ebf
         {{- else }},#fff,#000
-      {{- end }},"{{ range $j, $e := $state.Events}}{{ Id $e.Next }}{{ if (not (Last $j $state.Events)) }},{{ end }}{{ end }}"
+      {{- end }},"{{ range $j, $e := $state.Events}}{{ goId $e.Next }}{{ if (not (last $j $state.Events)) }},{{ end }}{{ end }}"
     {{ end }}

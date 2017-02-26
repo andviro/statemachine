@@ -5,13 +5,10 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
-	"reflect"
-	"regexp"
-	"strings"
 	tpl "text/template"
-)
 
-var idCleanupRe = regexp.MustCompile("[^a-zA-Z0-9]+")
+	"github.com/Masterminds/sprig"
+)
 
 type Template struct {
 	Src   string `yaml:"-"`
@@ -25,72 +22,43 @@ type Template struct {
 	isDir bool
 }
 
-func parts(s string) (res []string) {
-	pts := idCleanupRe.Split(s, -1)
-	for _, p := range pts {
-		p = strings.TrimSpace(p)
-		if len(p) == 0 {
-			continue
-		}
-		res = append(res, p)
-	}
-	return
-}
-
-var funcMap = tpl.FuncMap{
-	"Id": func(s string) (res string) {
-		for _, part := range parts(s) {
-			res += strings.Title(part)
-		}
-		return
-	},
-	"PyId": func(s string) (res string) {
-		return strings.Join(parts(s), "_")
-	},
-	"Last": func(x int, a interface{}) bool {
-		return x == reflect.ValueOf(a).Len()-1
-	},
-	"Index": func() int {
-		return -1
-	},
-	"Source": func() string {
-		return "<unknown>"
-	},
+func newTpl(name string) *tpl.Template {
+	return tpl.New(name).Funcs(sprig.TxtFuncMap()).Funcs(funcMap)
 }
 
 func (t *Template) Compile(src string) (err error) {
 	if t.Body != "" && t.Path != "" {
-		panic("both template body and template path specified")
+		return errors.New("both template body and template path specified")
 	}
 	t.Src = src
-	if t.cName, err = tpl.New("$name").Funcs(funcMap).Parse(t.Name); err != nil {
-		return errors.Wrap(err, "parse name")
+	if t.cName, err = newTpl(src).Parse(t.Name); err != nil {
+		return
 	}
 	if t.Body != "" {
-		t.cBody, err = tpl.New("$body").Funcs(funcMap).Parse(t.Body)
-		return errors.Wrap(err, "parse body")
+		t.cBody, err = newTpl(src).Parse(t.Body)
+		return
 	}
 	path, err := filepath.Abs(src)
 	if err != nil {
-		return
+		return errors.Wrapf(err, "%s:1", src)
 	}
 	t.cPath = make(map[string]*tpl.Template)
 	startPath := filepath.Join(filepath.Dir(path), t.Path)
 	info, err := os.Stat(startPath)
 	if err != nil {
-		return errors.Wrap(err, "get file info")
+		return errors.Wrapf(err, "%s:1", src)
 	}
 	t.isDir = info.IsDir()
 	err = filepath.Walk(startPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
-			return err
+			return errors.Wrapf(err, "%s:1", path)
 		}
 		var relPath string
 		if relPath, err = filepath.Rel(startPath, path); err != nil {
-			return err
+			return errors.Wrapf(err, "%s:1", path)
 		}
-		t.cPath[relPath], err = tpl.New(relPath).Funcs(funcMap).ParseFiles(path)
-		return errors.Wrap(err, "parse file")
+		t.cPath[relPath], err = newTpl(relPath).ParseFiles(path)
+		return err
 	})
 	return
 }
@@ -141,13 +109,14 @@ func (t *Template) Execute(machines []*Machine, srcFile string) (err error) {
 	}
 	if !t.Iter {
 		return t.run(machines, tpl.FuncMap{
-			"Source": func() string { return filepath.Base(srcFile) },
+			"_srcFile": func() string { return filepath.Base(srcFile) },
 		})
 	}
 	for idx, m := range machines {
 		if err = t.run(m, tpl.FuncMap{
-			"Source": func() string { return filepath.Base(srcFile) },
-			"Index":  func() int { return idx },
+			"_srcFile": func() string { return filepath.Base(srcFile) },
+			"_idx":     func() int { return idx },
+			"_all":     func() interface{} { return machines },
 		}); err != nil {
 			return
 		}

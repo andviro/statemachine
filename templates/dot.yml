@@ -1,20 +1,19 @@
 ---
-- name: "{{ Source }}.gv"
+- name: "{{ pyId .Name }}.gv"
+  iter: true
   body: |
-    {{ range . }}
-    digraph {{ Id .Name }} {
+    digraph {{ goId .Name }} {
       {{ with $states := .States }}
       {{ range $i, $state := $states -}}
-      {{ Id $state.Name }}[label="{{ or .Title .Name }}"{{ if or (not $i) (Last $i $states) }} shape=doublecircle{{ end }}];
+      {{ goId $state.Name }}[label="{{ or .Title .Name }}"{{ if or (not $i) (last $i $states) }} shape=doublecircle{{ end }}];
       {{ end }}
 
       {{ range $i, $state := $states }}
         {{- range $j, $event := $state.Events }}
           {{- if $event.Next -}}
-            {{ Id $state.Name }} -> {{ Id $event.Next }}[label="{{ $event.Name }}"];
+            {{ goId $state.Name }} -> {{ goId $event.Next }}[label="{{ $event.Name }}"];
           {{- end }}
         {{ end }}
       {{ end -}}
       {{ end }}
     }
-    {{ end }}
