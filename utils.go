@@ -33,7 +33,7 @@ var funcMap = map[string]interface{}{
 	"last": func(x int, a interface{}) bool {
 		return x == reflect.ValueOf(a).Len()-1
 	},
-	"_idx": func() int {
+	"_idx": func() interface{} {
 		return -1
 	},
 	"_srcFile": func() string {

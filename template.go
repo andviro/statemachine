@@ -11,15 +11,16 @@ import (
 )
 
 type Template struct {
-	Src   string `yaml:"-"`
-	Name  string `yaml:"name"`
-	Body  string `yaml:"body"`
-	Path  string `yaml:"path"`
-	Iter  bool   `yaml:"iter"`
-	cName *tpl.Template
-	cBody *tpl.Template
-	cPath map[string]*tpl.Template
-	isDir bool
+	Src     string `yaml:"-"`
+	Name    string `yaml:"name"`
+	Body    string `yaml:"body"`
+	Path    string `yaml:"path"`
+	Iter    string `yaml:"iter"`
+	Context string `yaml:"context"`
+	cName   *tpl.Template
+	cBody   *tpl.Template
+	cPath   map[string]*tpl.Template
+	isDir   bool
 }
 
 func newTpl(name string) *tpl.Template {
@@ -111,15 +112,27 @@ func (t *Template) Execute(machines []*Machine, srcFile string) (err error) {
 	if t.cName == nil || (t.cBody == nil && len(t.cPath) == 0) {
 		panic("template not compiled")
 	}
-	if !t.Iter {
+	if t.Iter == "" {
 		return t.run(machines, tpl.FuncMap{
 			"_srcFile": func() string { return filepath.Base(srcFile) },
 		})
 	}
 	for idx, m := range machines {
+		if t.Iter == "states" {
+			for stIdx, s := range m.States {
+				if err = t.run(s, tpl.FuncMap{
+					"_srcFile": func() string { return filepath.Base(srcFile) },
+					"_idx":     func() interface{} { return stIdx },
+					"_all":     func() interface{} { return m },
+				}); err != nil {
+					return
+				}
+			}
+			continue
+		}
 		if err = t.run(m, tpl.FuncMap{
 			"_srcFile": func() string { return filepath.Base(srcFile) },
-			"_idx":     func() int { return idx },
+			"_idx":     func() interface{} { return idx },
 			"_all":     func() interface{} { return machines },
 		}); err != nil {
 			return

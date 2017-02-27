@@ -1,0 +1,4 @@
+---
+- name: "{{goId _all.Name}}/{{ pyId .Name }}"
+  path: project/
+  iter: states
