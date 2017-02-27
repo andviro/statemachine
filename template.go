@@ -11,16 +11,16 @@ import (
 )
 
 type Template struct {
-	Src     string `yaml:"-"`
-	Name    string `yaml:"name"`
-	Body    string `yaml:"body"`
-	Path    string `yaml:"path"`
-	Iter    string `yaml:"iter"`
-	Context string `yaml:"context"`
-	cName   *tpl.Template
-	cBody   *tpl.Template
-	cPath   map[string]*tpl.Template
-	isDir   bool
+	Src   string `yaml:"-"`
+	Name  string `yaml:"name"`
+	Body  string `yaml:"body"`
+	Path  string `yaml:"path"`
+	Iter  string `yaml:"iter"`
+	Keep  bool   `yaml:"keep"`
+	cName *tpl.Template
+	cBody *tpl.Template
+	cPath map[string]*tpl.Template
+	isDir bool
 }
 
 func newTpl(name string) *tpl.Template {
@@ -76,6 +76,9 @@ func (t *Template) run(data interface{}, extraFuncs tpl.FuncMap) (err error) {
 	name := buf.String()
 
 	if t.cBody != nil {
+		if _, err = os.Stat(name); err == nil && t.Keep {
+			return nil
+		}
 		fp, err := os.Create(name)
 		if err != nil {
 			return err
@@ -89,6 +92,9 @@ func (t *Template) run(data interface{}, extraFuncs tpl.FuncMap) (err error) {
 			k = name
 		} else {
 			k = filepath.Join(name, k)
+		}
+		if _, err = os.Stat(k); err == nil && t.Keep {
+			continue
 		}
 		if err = os.MkdirAll(filepath.Dir(k), os.ModePerm); err != nil {
 			return
