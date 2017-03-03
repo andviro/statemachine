@@ -5,21 +5,26 @@ import (
 	"sort"
 )
 
+type M map[string]interface{}
+
 type Machine struct {
 	Name   string  `yaml:"name"`
 	Title  string  `yaml:"title"`
+	Meta   M       `yaml:"meta"`
 	States []State `yaml:"states"`
 }
 
 type State struct {
 	Name   string  `yaml:"name"`
 	Title  string  `yaml:"title,omitempty"`
+	Meta   M       `yaml:"meta"`
 	Events []Event `yaml:"events"`
 }
 
 type Event struct {
 	Name    string   `yaml:"name"`
 	Next    string   `yaml:"next"`
+	Meta    M        `yaml:"meta"`
 	Actions []string `yaml:"actions,omitempty"`
 }
 

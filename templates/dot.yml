@@ -5,7 +5,7 @@
     digraph {{ goId .Name }} {
       {{ with $states := .States }}
       {{ range $i, $state := $states -}}
-      {{ goId $state.Name }}[label="{{ or .Title .Name }}"{{ if or (not $i) (last $i $states) }} shape=doublecircle{{ end }}];
+      {{ goId $state.Name }}[label="{{ or .Title .Name }}({{ or .Meta.scale "" }})"{{ if or (not $i) (last $i $states) }} shape=doublecircle{{ end }}];
       {{ end }}
 
       {{ range $i, $state := $states }}

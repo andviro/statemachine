@@ -3,9 +3,12 @@
   title: >
     test state machine 1 long description
     long long long
-  template: python
+  meta:
+    someKey: 1
   states: 
     - name: WAIT INPUT     # initial state is first in list
+      meta:
+        scale: 10
       events:
         - name: got input
           next: PROCESSING
