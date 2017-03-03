@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	logging "log"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 var template = flag.String("t", "", "Override template in YAML")
@@ -50,12 +52,13 @@ func main() {
 		log.Fatalf("templates parse error: %+v", err)
 	}
 
+	sourceBase := strings.TrimSuffix(srcFile, filepath.Ext(srcFile))
 	for _, t := range templates {
 		if err := t.Compile(*template); err != nil {
 			log.Printf("%v", err)
 			continue
 		}
-		if err := t.Execute(machines, srcFile); err != nil {
+		if err := t.Execute(machines, sourceBase); err != nil {
 			log.Printf("%v", err)
 			continue
 		}
